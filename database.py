@@ -324,3 +324,39 @@ def get_student_attendance(
     conn.close()
 
     return records
+# -----------------------------------
+# Delete Student
+# -----------------------------------
+
+def delete_student(student_id):
+
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    try:
+
+        # Delete attendance records first
+        cursor.execute("""
+            DELETE FROM attendance
+            WHERE student_id = ?
+        """, (student_id,))
+
+        # Delete student record
+        cursor.execute("""
+            DELETE FROM students
+            WHERE id = ?
+        """, (student_id,))
+
+        conn.commit()
+
+        return True
+
+    except sqlite3.Error:
+
+        conn.rollback()
+
+        return False
+
+    finally:
+
+        conn.close()

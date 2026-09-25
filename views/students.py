@@ -1,7 +1,11 @@
 ﻿import streamlit as st
 import pandas as pd
 
-from database import get_all_students, get_student_attendance
+from database import (
+    get_all_students,
+    get_student_attendance,
+    delete_student
+)
 
 
 def show_students():
@@ -22,7 +26,9 @@ def show_students():
     st.divider()
 
     if not students:
+
         st.info("No students registered yet.")
+
         return
 
     # ==========================================
@@ -96,6 +102,104 @@ def show_students():
         st.warning(
             "No students found matching your search."
         )
+
+    st.divider()
+
+    # ==========================================
+    # DELETE STUDENT
+    # ==========================================
+
+    st.subheader("🗑️ Remove Student")
+
+    delete_options = {
+        f"{student[1]} — {student[2]}": student[0]
+        for student in students
+    }
+
+    selected_delete_name = st.selectbox(
+        "Select Student to Remove",
+        list(delete_options.keys()),
+        key="delete_student_select"
+    )
+
+    selected_delete_id = delete_options[
+        selected_delete_name
+    ]
+
+    st.warning(
+        "⚠️ Deleting a student will permanently remove "
+        "the student profile, face data, and attendance history."
+    )
+
+    # ==========================================
+    # DELETE CONFIRMATION DIALOG
+    # ==========================================
+
+    @st.dialog("⚠️ Confirm Student Deletion")
+    def confirm_delete():
+
+        st.warning(
+            f"Are you sure you want to permanently delete "
+            f"**{selected_delete_name}**?"
+        )
+
+        st.write(
+            "This will permanently remove:"
+        )
+
+        st.write("• Student profile")
+        st.write("• Registered face data")
+        st.write("• Complete attendance history")
+
+        st.divider()
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            if st.button(
+                "❌ Cancel",
+                use_container_width=True
+            ):
+
+                st.rerun()
+
+        with col2:
+
+            if st.button(
+                "🗑️ Yes, Delete",
+                type="primary",
+                use_container_width=True
+            ):
+
+                deleted = delete_student(
+                    selected_delete_id
+                )
+
+                if deleted:
+
+                    st.success(
+                        "✅ Student deleted successfully."
+                    )
+
+                    st.rerun()
+
+                else:
+
+                    st.error(
+                        "❌ Unable to delete student."
+                    )
+
+    # ==========================================
+    # DELETE BUTTON
+    # ==========================================
+
+    if st.button(
+        "🗑️ Delete Student",
+        key="delete_student_button"
+    ):
+
+        confirm_delete()
 
     st.divider()
 
